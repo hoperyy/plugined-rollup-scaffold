@@ -1,11 +1,9 @@
 import Base from './base/index';
 
-import PluginEntry from './demo/plugins/entry';
+import userConfig from './demo/scaffold.config'
 
 // get plugins
-const plugins = [
-    PluginEntry
-];
+const plugins = userConfig.plugins;
 
 new Base({
     plugins
