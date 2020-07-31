@@ -1,5 +1,5 @@
 {
-  "name": "@vdian/vbuilder-rollup2",
+  "name": "plugined-rollup-scaffold",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@gitlab.vdian.net:60022/vbuilder/vbuilder-rollup2.git"
+    "url": "git@github.com:hoperyy/plugined-rollup-scaffold.git"
   },
   "author": "",
   "license": "ISC",
