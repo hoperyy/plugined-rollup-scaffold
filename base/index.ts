@@ -10,7 +10,10 @@ import { WaterfallEvents } from './events';
 export default class Base {
     constructor(options = {}) {
         (async () => {
-            this.options = options;
+            this.options = {
+                plugins: [],
+                ...options
+            };
 
             this.hooks = {
                 beforeEntry: new WaterfallEvents(),
