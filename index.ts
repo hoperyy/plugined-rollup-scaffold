@@ -1,6 +1,6 @@
 import Base from './base/index';
 
-import PluginEntry from './plugins/entry';
+import PluginEntry from './demo/plugins/entry';
 
 // get plugins
 const plugins = [
