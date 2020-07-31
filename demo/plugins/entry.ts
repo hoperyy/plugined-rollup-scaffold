@@ -1,7 +1,7 @@
 // generate entries
 export default class PluginEntry {
     constructor(options) {
-        this.options = options;
+        this.options = { ...options };
     }
 
     options: object = {};
@@ -10,6 +10,8 @@ export default class PluginEntry {
 
     async apply(context) {
         this.context = context;
+
+        // context.srcFolder
 
         context.hooks.beforeEntry.tap('configEntry', () => {
             console.log('configEntry');

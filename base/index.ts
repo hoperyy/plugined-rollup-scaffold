@@ -10,10 +10,7 @@ import { WaterfallEvents } from './events';
 export default class Base {
     constructor(options = {}) {
         (async () => {
-            this.options = {
-                plugins: [],
-                ...options
-            };
+            this.plugins = options.plugins || [];
 
             this.hooks = {
                 beforeEntry: new WaterfallEvents(),
@@ -31,16 +28,15 @@ export default class Base {
         })();
     }
 
-    // 钩子定义
     hooks: object = {};
 
-    options: {} = {};
+    plugins: [];
 
-    context: object = {};
+    
 
     async installPlugins() {
-        for (let i = 0, len = this.options.plugins.length; i < len; i++) {
-            const Plugin = this.options.plugins[i];
+        for (let i = 0, len = this.plugins.length; i < len; i++) {
+            const Plugin = this.plugins[i];
             const plugin = new Plugin();
             plugin.apply && await plugin.apply(this);
         }
