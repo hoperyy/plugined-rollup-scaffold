@@ -32,8 +32,6 @@ export default class Base {
 
     plugins: [];
 
-    
-
     async installPlugins() {
         for (let i = 0, len = this.plugins.length; i < len; i++) {
             const Plugin = this.plugins[i];

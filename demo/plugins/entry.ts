@@ -1,6 +1,6 @@
 // generate entries
 export default class PluginEntry {
-    constructor(options) {
+    constructor(options = {}) {
         this.options = { ...options };
     }
 
