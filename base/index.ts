@@ -28,24 +28,35 @@ export default class Base {
         })();
     }
 
-    hooks: object = {};
+    public hooks: object = {};
 
-    plugins: [];
+    public utils: {
 
-    async installPlugins() {
+    };
+
+    private plugins: [];
+
+    private async installPlugins() {
+        const pluginContext = {
+            hooks: this.hooks,
+            utils: this.utils
+        };
+
         for (let i = 0, len = this.plugins.length; i < len; i++) {
             const Plugin = this.plugins[i];
             const plugin = new Plugin();
-            plugin.apply && await plugin.apply(this);
+            plugin.apply && await plugin.apply(pluginContext);
         }
     }
 
-    async runRoot() {
+    private async runRoot() {
         await this.hooks.beforeEntry.call();
         await this.hooks.afterEntry.call();
         await this.hooks.beforeRollupConfig.call();
         await this.hooks.afterRollupConfig.call();
         await this.hooks.beforeRollupWrite.call();
         await this.hooks.afterRollupWrite.call();
+
+        // run rollup
     }
 }
