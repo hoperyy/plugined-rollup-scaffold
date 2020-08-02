@@ -4,7 +4,7 @@ import * as rollup from 'rollup';
 
 // import * as gulp from 'gulp';
 import { WaterfallEvents } from './events';
-import { typeOptions, typeHooks, typeUtils, typeUserConfig, typeStandardPluginPresetInputItem, typeRollupConfig, typePluginContext, typeStandardPluginPresetOutputItem } from './types';
+import { typeOptions, typeUtils, typeStandardPluginPresetInputItem, typePluginContext, typeStandardPluginPresetOutputItem } from './types';
 
 // generate entries
 
@@ -19,6 +19,11 @@ export default class Core {
             console.log(`[plugined-rollup-scaffold] config "root: string" is needed.`);
             return;
         }
+
+        // update pluginContext
+        Object.assign(this.pluginContext.ctx, {
+            root: this.options.root
+        });
 
         (async () => {
             await this.installPlugins();
@@ -39,12 +44,15 @@ export default class Core {
                 return Object.prototype.toString.call(param) === '[object String]';
             }
         },
+        ctx: {
+            root: '',
+        },
         singleRollupConfig: {
             inputOptions: {},
             outputOptions: {},
             watchOptions: {}
         },
-        multiRollupConfig: [],
+        multiRollupConfigs: [],
     }
 
     public utils: typeUtils = {
@@ -58,17 +66,14 @@ export default class Core {
 
     private options: typeOptions = {
         root: '',
-        configName: 'scaffold.config.js',
         searchList: [ 'node_modules' ],
-        mode: 'single-rollup'
+        mode: 'single-rollup',
+        plugins: [],
+        presets: []
     };
 
     private getPluginList(): Array<typeStandardPluginPresetOutputItem> {
-        const { root, configName } = this.options;
-        const configFilePath: string = path.join(root, configName);
-
-        const configObject: typeUserConfig = require(configFilePath).default;
-        const { plugins: pluginNames, presets: presetNames } = configObject;
+        const { plugins: pluginNames, presets: presetNames } = this.options;
 
         // search plugin/presets entries
         const standardPluginList: Array<typeStandardPluginPresetInputItem> = pluginNames.map(name => this.findModule(name, 'plugin' )).filter(item => !!item);
@@ -114,7 +119,6 @@ export default class Core {
             const curSearchPath: string = path.join(this.options.root, this.options.searchList[i]);
             const moduleName: string = standardInput.name.indexOf(prefix) === -1 ? `${prefix}${standardInput.name}` : standardInput.name;
             const modulePath: string = path.join(curSearchPath, moduleName, 'index.js');
-
             
             if (fs.existsSync(modulePath)) {
                 standardOutput = {
@@ -165,7 +169,7 @@ export default class Core {
                 break;
             case 'multi-rollup':
                 {
-                    const promises = pluginContext.multiRollupConfig.map(async curRollupConfig => {
+                    const promises = pluginContext.multiRollupConfigs.map(async curRollupConfig => {
                         // create a bundle
                         const bundle = await rollup.rollup(curRollupConfig.inputOptions);
                         // or write the bundle to disk

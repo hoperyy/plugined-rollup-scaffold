@@ -5,9 +5,10 @@ interface typeEventInstance {
 
 export interface typeOptions {
     root?: string;
-    configName?: string;
     searchList?: Array<string>;
     mode?: 'single-rollup' | 'multi-rollup';
+    plugins?: Array<string | Array<any>>;
+    presets?: Array<string | Array<any>>;
 }
 
 export interface typeHooks {
@@ -73,8 +74,11 @@ export interface typeRollupConfig {
 export interface typePluginContext {
     hooks: typeHooks;
     utils: typeUtils;
+    ctx: {
+        root: string
+    },
     singleRollupConfig?: typeRollupConfig;
-    multiRollupConfig?: Array<typeRollupConfig>;
+    multiRollupConfigs?: Array<typeRollupConfig>;
 }
 
 export interface typeStandardPluginPresetOutputItem {
