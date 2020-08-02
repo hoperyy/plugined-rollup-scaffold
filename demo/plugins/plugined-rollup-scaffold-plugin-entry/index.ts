@@ -27,7 +27,6 @@ export default class PluginEntry {
 
         const packagesFolder: string = path.join(root, 'src/packages');
         const packagesNamelist = fs.readdirSync(packagesFolder).filter(name => fs.statSync(path.join(packagesFolder, name)).isDirectory());
-        console.log(packagesNamelist);
 
         const promises = packagesNamelist.map(async packageName => {
             return {
