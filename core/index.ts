@@ -1,8 +1,10 @@
 import * as path from 'path';
+import * as fs from 'fs';
+import * as rollup from 'rollup';
 
 // import * as gulp from 'gulp';
 import { WaterfallEvents } from './events';
-import { typeOptions, typeHooks, typeUtils, typeUserConfig, typeStandardPluginPresetItem, typeRollupConfig, typePluginContext } from './types';
+import { typeOptions, typeHooks, typeUtils, typeUserConfig, typeStandardPluginPresetInputItem, typeRollupConfig, typePluginContext, typeStandardPluginPresetOutputItem } from './types';
 
 // generate entries
 
@@ -10,17 +12,13 @@ import { typeOptions, typeHooks, typeUtils, typeUserConfig, typeStandardPluginPr
 
 // build index.js
 export default class Core {
-    constructor(options: typeOptions) {
-        this.options = { ...options };
-        
-        this.hooks = {
-            beforeEntry: new WaterfallEvents(),
-            afterEntry: new WaterfallEvents(),
-            beforeRollupConfig: new WaterfallEvents(),
-            afterRollupConfig: new WaterfallEvents(),
-            beforeRollupWrite: new WaterfallEvents(),
-            afterRollupWrite: new WaterfallEvents(),
-        };
+    constructor(options: typeOptions = {}) {
+        this.options = { ...this.options, ...options };
+
+        if (!this.options.root) {
+            console.log(`[plugined-rollup-scaffold] config "root: string" is needed.`);
+            return;
+        }
 
         (async () => {
             await this.installPlugins();
@@ -28,7 +26,26 @@ export default class Core {
         })();
     }
 
-    public hooks: typeHooks;
+    public pluginContext: typePluginContext = {
+        hooks: {
+            onRollupConfig: new WaterfallEvents(),
+            afterRollupConfig: new WaterfallEvents(),
+        },
+        utils: {
+            isArray(param: any): boolean {
+                return Object.prototype.toString.call(param) === '[object Array]';
+            },
+            isString(param: any): boolean {
+                return Object.prototype.toString.call(param) === '[object String]';
+            }
+        },
+        singleRollupConfig: {
+            inputOptions: {},
+            outputOptions: {},
+            watchOptions: {}
+        },
+        multiRollupConfig: [],
+    }
 
     public utils: typeUtils = {
         isArray(param: any): boolean {
@@ -39,11 +56,14 @@ export default class Core {
         }
     };
 
-    public rollup: typeRollupConfig;
+    private options: typeOptions = {
+        root: '',
+        configName: 'scaffold.config.js',
+        searchList: [ 'node_modules' ],
+        mode: 'single-rollup'
+    };
 
-    private options: typeOptions;
-
-    private getPluginConstructorList(): Array<FunctionConstructor> {
+    private getPluginList(): Array<typeStandardPluginPresetOutputItem> {
         const { root, configName } = this.options;
         const configFilePath: string = path.join(root, configName);
 
@@ -51,54 +71,112 @@ export default class Core {
         const { plugins: pluginNames, presets: presetNames } = configObject;
 
         // search plugin/presets entries
-        const standardPluginList: Array<typeStandardPluginPresetItem> = pluginNames.map(name => this.findModule(name, 'plugin' ));
-        const standardPresetList: Array<typeStandardPluginPresetItem> = pluginNames.map(name => this.findModule(name, 'preset'));
+        const standardPluginList: Array<typeStandardPluginPresetInputItem> = pluginNames.map(name => this.findModule(name, 'plugin' )).filter(item => !!item);
+        const standardPresetList: Array<typeStandardPluginPresetInputItem> = pluginNames.map(name => this.findModule(name, 'preset')).filter(item => !!item);
 
-        const pluginConstructors = [];
+        const pluginConstructors = standardPluginList.map(({ modulePath, options }) => {
+            const Fn = require(modulePath).default;
+
+            return {
+                Fn,
+                options,
+            };
+        });
 
         return pluginConstructors;
     };
 
-    private findModule(name: string | Array<any>, prefix: 'plugin' | 'preset'): typeStandardPluginPresetItem {
-        const standardItem = {
-            absPath: '',
-            options: {}
-        };
+    private findModule(input: string | Array<any>, tag: 'plugin' | 'preset'): typeStandardPluginPresetInputItem {
+        let standardOutput = null;
 
-        if (this.utils.isString(name)) {
+        // format input
+        let standardInput = null;
 
-        } else if (this.utils.isArray(name)) {
-
+        if (this.utils.isString(input)) {
+            standardInput = {
+                name: input as string,
+                options: {}
+            };
+        } else if (this.utils.isArray(input)) {
+            standardInput = {
+                name: input[0],
+                options: input[1] || {}
+            };
         }
 
-        return standardItem;
+        if (!standardInput) {
+            return null;
+        }
+
+        const prefix = `plugined-rollup-scaffold-${tag}-`;
+
+        for (let i = 0, len = this.options.searchList.length; i < len; i++) {
+            const curSearchPath: string = path.join(this.options.root, this.options.searchList[i]);
+            const moduleName: string = standardInput.name.indexOf(prefix) === -1 ? `${prefix}${standardInput.name}` : standardInput.name;
+            const modulePath: string = path.join(curSearchPath, moduleName, 'index.js');
+
+            
+            if (fs.existsSync(modulePath)) {
+                standardOutput = {
+                    modulePath,
+                    options: standardInput.options,
+                }
+
+                break;
+            }
+        }
+
+        // console.log(standardOutput);
+
+        return standardOutput;
     }
 
     private async installPlugins() {
-        const pluginContext: typePluginContext = {
-            hooks: this.hooks,
-            utils: this.utils,
-            rollup: this.rollup,
-        };
+        const plugins: Array<typeStandardPluginPresetOutputItem> = this.getPluginList();
 
-        const plugins: Array<FunctionConstructor> = this.getPluginConstructorList();
+        const promises = plugins.map(async ( { Fn, options } ) => {
+            const plugin = new Fn(options);
+            plugin.apply && await plugin.apply(this.pluginContext);
+        });
 
-        for (let i = 0, len = plugins.length; i < len; i++) {
-            const Plugin = plugins[i];
-            const plugin = new Plugin();
-            plugin.apply && await plugin.apply(pluginContext);
-        }
+        await Promise.all(promises);
     }
 
     private async runRoot() {
         // config rollup
-        await this.hooks.beforeEntry.call();
-        await this.hooks.afterEntry.call();
-        await this.hooks.beforeRollupConfig.call();
-        await this.hooks.afterRollupConfig.call();
-        await this.hooks.beforeRollupWrite.call();
-        await this.hooks.afterRollupWrite.call();
+        await this.pluginContext.hooks.onRollupConfig.call();
+        await this.pluginContext.hooks.afterRollupConfig.call();
 
         // run rollup
+        await this.runRollup();
+    }
+
+    private async runRollup() {
+        const pluginContext = this.pluginContext;
+
+        switch (this.options.mode) {
+            case 'single-rollup':
+                {
+                    // create a bundle
+                    const bundle = await rollup.rollup(pluginContext.singleRollupConfig.inputOptions);
+                    // or write the bundle to disk
+                    await bundle.write(pluginContext.singleRollupConfig.outputOptions);
+                }
+                break;
+            case 'multi-rollup':
+                {
+                    const promises = pluginContext.multiRollupConfig.map(async curRollupConfig => {
+                        // create a bundle
+                        const bundle = await rollup.rollup(curRollupConfig.inputOptions);
+                        // or write the bundle to disk
+                        await bundle.write(curRollupConfig.outputOptions);
+                    });
+
+                    await Promise.all(promises);
+                }
+                break;
+            default:
+                break;
+        }
     }
 }

@@ -23,6 +23,7 @@
     "gulp-newer": "^1.4.0",
     "gulp-plumber": "^1.2.1",
     "gulp-watch": "^5.0.1",
+    "rollup": "^2.23.0",
     "tappable": "^1.1.0"
   }
 }

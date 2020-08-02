@@ -9,4 +9,5 @@ new Core({
         'node_modules',
         'plugins'
     ],
+    mode: 'multi-rollup'
 });

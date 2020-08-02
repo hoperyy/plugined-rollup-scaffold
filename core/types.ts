@@ -4,18 +4,15 @@ interface typeEventInstance {
 }
 
 export interface typeOptions {
-    root: string;
-    configName: string;
-    searchList: Array<string>;
+    root?: string;
+    configName?: string;
+    searchList?: Array<string>;
+    mode?: 'single-rollup' | 'multi-rollup';
 }
 
 export interface typeHooks {
-    beforeEntry: typeEventInstance;
-    afterEntry: typeEventInstance;
-    beforeRollupConfig: typeEventInstance;
+    onRollupConfig: typeEventInstance;
     afterRollupConfig: typeEventInstance;
-    beforeRollupWrite: typeEventInstance;
-    afterRollupWrite: typeEventInstance;
 };
 
 export interface typeUserConfig {
@@ -23,8 +20,8 @@ export interface typeUserConfig {
     presets?: Array<string | Array<any>>
 }
 
-export interface typeStandardPluginPresetItem {
-    absPath: string;
+export interface typeStandardPluginPresetInputItem {
+    modulePath: string;
     options: object;
 }
 
@@ -35,11 +32,11 @@ export interface typeUtils {
 
 export interface typeRollupConfig {
     inputOptions: {
-        input: string;
-        external?: object;
+        input?: any;
+        external?: any;
         plugins?: Array<any>;
-        onwarn?: Function;
-        cache?: boolean;
+        onwarn?: any;
+        cache?: any;
         acorn?: any;
         context?: any;
         moduleContext?: any;
@@ -48,8 +45,8 @@ export interface typeRollupConfig {
     outputOptions: {
         // core
         file?: any,   // 若有 bundle.write，必填
-        format: any, // 必填
-        name?: string,
+        format?: any, // 必填
+        name?: any,
         globals?: any,
 
         // 高级参数
@@ -76,5 +73,11 @@ export interface typeRollupConfig {
 export interface typePluginContext {
     hooks: typeHooks;
     utils: typeUtils;
-    rollup: typeRollupConfig;
+    singleRollupConfig?: typeRollupConfig;
+    multiRollupConfig?: Array<typeRollupConfig>;
+}
+
+export interface typeStandardPluginPresetOutputItem {
+    Fn(options: object): void;
+    options: object;
 }

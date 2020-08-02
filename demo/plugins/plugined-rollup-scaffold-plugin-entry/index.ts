@@ -13,8 +13,8 @@ export default class PluginEntry {
 
         // context.srcFolder
 
-        context.hooks.beforeEntry.tap('configEntry', () => {
-            console.log('configEntry');
+        context.hooks.onRollupConfig.tap('configRollup', () => {
+            console.log('onRollupConfig');
             // 返回 entry 列表
             return [];
         });

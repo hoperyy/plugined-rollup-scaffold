@@ -1,6 +1,6 @@
 export default {
     plugins: [
-        'entry'
+        [ 'entry', { a: 1 } ]
     ],
     presets: [
         
