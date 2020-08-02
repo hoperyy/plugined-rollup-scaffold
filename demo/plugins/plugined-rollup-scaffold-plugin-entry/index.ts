@@ -12,10 +12,17 @@ export default class PluginEntry {
         this.context = context;
 
         // context.srcFolder
-        context.hooks.onRollupConfig.tap('configRollup', () => {
-            console.log('in plugin onRollupConfig', this.context.ctx.root);
-            // 返回 entry 列表
-            return [];
+        context.hooks.onRollupConfig.tap('configRollup', async () => {
+            this.context.multiRollupConfigs = await this.generateOneRollup();
         });
-    }
+    };
+
+    async generateOneRollup() {
+        const { ctx, utils } = this.context;
+        const { root: srcFolder } = ctx;
+
+        
+
+        return [];
+    };
 }
