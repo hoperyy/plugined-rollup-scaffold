@@ -2,15 +2,15 @@ import * as path from 'path';
 
 // import * as gulp from 'gulp';
 import { WaterfallEvents } from './events';
-import { options, hooks, utils, userConfig, standardPluginPresetItem, eventInstance } from './types';
+import { typeOptions, typeHooks, typeUtils, typeUserConfig, typeStandardPluginPresetItem, typeRollupConfig, typePluginContext } from './types';
 
 // generate entries
 
 // build files inside packages
 
 // build index.js
-export default class Base {
-    constructor(options: options) {
+export default class Core {
+    constructor(options: typeOptions) {
         this.options = { ...options };
         
         this.hooks = {
@@ -28,9 +28,9 @@ export default class Base {
         })();
     }
 
-    public hooks: hooks;
+    public hooks: typeHooks;
 
-    public utils: utils = {
+    public utils: typeUtils = {
         isArray(param: any): boolean {
             return Object.prototype.toString.call(param) === '[object Array]';
         },
@@ -39,25 +39,27 @@ export default class Base {
         }
     };
 
-    private options: options;
+    public rollup: typeRollupConfig;
+
+    private options: typeOptions;
 
     private getPluginConstructorList(): Array<FunctionConstructor> {
         const { root, configName } = this.options;
         const configFilePath: string = path.join(root, configName);
 
-        const configObject: userConfig = require(configFilePath).default;
+        const configObject: typeUserConfig = require(configFilePath).default;
         const { plugins: pluginNames, presets: presetNames } = configObject;
 
         // search plugin/presets entries
-        const standardPluginList: Array<standardPluginPresetItem> = pluginNames.map(name => this.findModule(name, 'plugin' ));
-        const standardPresetList: Array<standardPluginPresetItem> = pluginNames.map(name => this.findModule(name, 'preset'));
+        const standardPluginList: Array<typeStandardPluginPresetItem> = pluginNames.map(name => this.findModule(name, 'plugin' ));
+        const standardPresetList: Array<typeStandardPluginPresetItem> = pluginNames.map(name => this.findModule(name, 'preset'));
 
         const pluginConstructors = [];
 
         return pluginConstructors;
     };
 
-    private findModule(name: string | Array<any>, prefix: 'plugin' | 'preset'): standardPluginPresetItem {
+    private findModule(name: string | Array<any>, prefix: 'plugin' | 'preset'): typeStandardPluginPresetItem {
         const standardItem = {
             absPath: '',
             options: {}
@@ -73,9 +75,10 @@ export default class Base {
     }
 
     private async installPlugins() {
-        const pluginContext = {
+        const pluginContext: typePluginContext = {
             hooks: this.hooks,
-            utils: this.utils
+            utils: this.utils,
+            rollup: this.rollup,
         };
 
         const plugins: Array<FunctionConstructor> = this.getPluginConstructorList();
@@ -88,6 +91,7 @@ export default class Base {
     }
 
     private async runRoot() {
+        // config rollup
         await this.hooks.beforeEntry.call();
         await this.hooks.afterEntry.call();
         await this.hooks.beforeRollupConfig.call();
