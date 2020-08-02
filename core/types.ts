@@ -66,7 +66,7 @@ export interface typeRollupConfig {
         indent?: any
         strict?: any
     };
-    watchOptions: {
+    watchOptions?: {
 
     };
 }
