@@ -2,7 +2,7 @@ import * as path from 'path';
 
 // import * as gulp from 'gulp';
 import { WaterfallEvents } from './events';
-import { options, hooks, utils, userConfig, standardPluginPresetItem } from './types';
+import { options, hooks, utils, userConfig, standardPluginPresetItem, eventInstance } from './types';
 
 // generate entries
 
@@ -78,7 +78,7 @@ export default class Base {
             utils: this.utils
         };
 
-        const plugins = this.getPluginConstructorList();
+        const plugins: Array<FunctionConstructor> = this.getPluginConstructorList();
 
         for (let i = 0, len = plugins.length; i < len; i++) {
             const Plugin = plugins[i];

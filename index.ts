@@ -1,8 +1,8 @@
 
 import * as path from 'path';
-import Base from './base/index';
+import Core from './core/index';
 
-new Base({
+new Core({
     root: path.join(__dirname, 'demo'),
     configName: 'scaffold.config.js',
     searchList: [

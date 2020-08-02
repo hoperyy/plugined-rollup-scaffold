@@ -3,7 +3,7 @@ export class WaterfallEvents {
 
     }
 
-    eventList: Array<Object> = [];
+    eventList: Array< { name: string; callback: Function } > = [];
 
     tap(name: string, callback: Function) {
         this.eventList.push({

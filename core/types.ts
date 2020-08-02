@@ -6,12 +6,12 @@ export interface options {
 }
 
 export interface hooks {
-    beforeEntry: object;
-    afterEntry: object;
-    beforeRollupConfig: object;
-    afterRollupConfig: object;
-    beforeRollupWrite: object;
-    afterRollupWrite: object;
+    beforeEntry: eventInstance;
+    afterEntry: eventInstance;
+    beforeRollupConfig: eventInstance;
+    afterRollupConfig: eventInstance;
+    beforeRollupWrite: eventInstance;
+    afterRollupWrite: eventInstance;
 };
 
 export interface userConfig {
@@ -27,4 +27,9 @@ export interface standardPluginPresetItem {
 export interface utils {
     isArray(param: any): boolean;
     isString(param: any): boolean;
+}
+
+export interface eventInstance {
+    tap(name: string, callback: Function): void;
+    call(): void
 }
